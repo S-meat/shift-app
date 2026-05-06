@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>シフト変更申請</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --red: #C0392B;
+    --red-dark: #96281B;
+    --red-light: #E74C3C;
+    --cream: #FDF6EC;
+    --warm-white: #FFFAF5;
+    --brown: #5D4037;
+    --gray: #6B6B6B;
+    --light-gray: #F0EAE2;
+    --border: #D5C9B8;
+    --success: #27AE60;
+    --text: #2C2C2C;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--cream);
+    min-height: 100vh;
+    color: var(--text);
+  }
+
+  /* ===== HEADER ===== */
+  .header {
+    background: var(--red);
+    padding: 20px 20px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 0; right: 0;
+    height: 24px;
+    background: var(--cream);
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  }
+  .header-logo {
+    font-size: 11px;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  .header-title {
+    font-size: 22px;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.5px;
+  }
+  .header-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.8);
+    margin-top: 4px;
+  }
+
+  /* ===== MAIN ===== */
+  .container {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+  }
+
+  /* ===== CARD ===== */
+  .card {
+    background: var(--warm-white);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    padding: 24px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--red);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .card-title::before {
+    content: '';
+    display: inline-block;
+    width: 3px;
+    height: 14px;
+    background: var(--red);
+    border-radius: 2px;
+  }
+
+  /* ===== FORM FIELDS ===== */
+  .field {
+    margin-bottom: 16px;
+  }
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--brown);
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+  }
+  label .req {
+    color: var(--red);
+    margin-left: 2px;
+  }
+  input[type="text"],
+  input[type="date"],
+  input[type="time"],
+  textarea {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--warm-white);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  input:focus, textarea:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(192,57,43,0.1);
+  }
+  input[type="date"] { color-scheme: light; }
+  textarea { resize: vertical; min-height: 72px; line-height: 1.6; }
+
+  /* ===== TYPE SELECTOR ===== */
+  .type-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .type-btn {
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--warm-white);
+    transition: all 0.18s;
+    position: relative;
+  }
+  .type-btn:active { transform: scale(0.97); }
+  .type-btn.selected {
+    border-color: var(--red);
+    background: #FEF0ED;
+    box-shadow: 0 0 0 3px rgba(192,57,43,0.12);
+  }
+  .type-btn .icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+    display: block;
+  }
+  .type-btn .label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gray);
+    line-height: 1.3;
+  }
+  .type-btn.selected .label { color: var(--red); }
+  .type-btn .check {
+    position: absolute;
+    top: 6px; right: 6px;
+    width: 16px; height: 16px;
+    background: var(--red);
+    border-radius: 50%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .type-btn.selected .check { display: flex; }
+  .type-btn .check::after {
+    content: '✓';
+    font-size: 10px;
+    color: white;
+    font-weight: 900;
+  }
+
+  /* ===== TIME SECTION ===== */
+  .time-free {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 15px;
+    color: var(--text);
+    background: var(--warm-white);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+  }
+  .time-free:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(192,57,43,0.1);
+  }
+  .time-hint {
+    font-size: 11px;
+    color: var(--gray);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  /* ===== SUBMIT BTN ===== */
+  .submit-btn {
+    width: 100%;
+    background: var(--red);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 18px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: background 0.2s, transform 0.15s;
+    box-shadow: 0 4px 16px rgba(192,57,43,0.35);
+  }
+  .submit-btn:active { transform: scale(0.98); background: var(--red-dark); }
+  .submit-btn:disabled { background: #ccc; box-shadow: none; cursor: not-allowed; }
+
+  /* ===== SUCCESS SCREEN ===== */
+  .success-screen {
+    display: none;
+    text-align: center;
+    padding: 32px 20px;
+  }
+  .success-screen.show { display: block; }
+  .success-icon {
+    font-size: 64px;
+    margin-bottom: 12px;
+    animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  @keyframes pop {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .success-title {
+    font-size: 20px;
+    font-weight: 900;
+    color: var(--success);
+    margin-bottom: 8px;
+  }
+  .success-msg {
+    font-size: 13px;
+    color: var(--gray);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+  .success-detail {
+    background: var(--light-gray);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: left;
+    font-size: 13px;
+    line-height: 1.8;
+    margin-bottom: 20px;
+  }
+  .success-detail strong { color: var(--red); }
+  .back-btn {
+    width: 100%;
+    background: transparent;
+    color: var(--red);
+    border: 2px solid var(--red);
+    border-radius: 12px;
+    padding: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .back-btn:active { background: #FEF0ED; }
+
+  /* ===== LOADING ===== */
+  .loading-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .loading-overlay.show { display: flex; }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--light-gray);
+    border-top-color: var(--red);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 13px; color: var(--gray); font-weight: 500; }
+
+  /* ===== CHANNEL SELECTOR ===== */
+  select {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--warm-white);
+    outline: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23999' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+  }
+
+  /* ===== CONDITIONAL SECTIONS ===== */
+  .conditional { display: none; }
+  .conditional.show { display: block; }
+
+  /* ===== NOTICE ===== */
+  .notice {
+    background: #FEF0ED;
+    border: 1px solid rgba(192,57,43,0.2);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12px;
+    color: var(--red-dark);
+    line-height: 1.6;
+    margin-bottom: 16px;
+  }
+  .notice strong { font-weight: 700; }
+
+  /* ===== QR MODAL ===== */
+  .qr-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .qr-modal.show { display: flex; }
+  .qr-box {
+    background: white;
+    border-radius: 20px;
+    padding: 28px 24px;
+    max-width: 320px;
+    width: 100%;
+    text-align: center;
+  }
+  .qr-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .qr-sub { font-size: 11px; color: var(--gray); margin-bottom: 20px; }
+  #qrcode { display: flex; justify-content: center; margin-bottom: 20px; }
+  .qr-url {
+    font-size: 10px;
+    color: var(--gray);
+    word-break: break-all;
+    background: var(--light-gray);
+    border-radius: 8px;
+    padding: 8px;
+    margin-bottom: 16px;
+    line-height: 1.5;
+  }
+  .qr-close {
+    width: 100%;
+    background: var(--red);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .qr-trigger {
+    width: 100%;
+    background: transparent;
+    color: var(--gray);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .error-msg {
+    color: var(--red);
+    font-size: 12px;
+    margin-top: 6px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-title">シフト変更申請</div>
+  <div class="header-sub">製造部 ミートチーム</div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Slackに送信中...</div>
+</div>
+
+<div class="container">
+  <!-- FORM -->
+  <div id="formView">
+    <!-- 基本情報 -->
+    <div class="card">
+      <div class="card-title">基本情報</div>
+      <div class="field">
+        <label>お名前 <span class="req">*</span></label>
+        <input type="text" id="name" placeholder="例：山田 太郎" autocomplete="name">
+        <div class="error-msg" id="nameErr">お名前を入力してください</div>
+      </div>
+      <div class="field">
+        <label>対象日 <span class="req">*</span></label>
+        <input type="date" id="targetDate">
+        <div class="error-msg" id="dateErr">対象日を選択してください</div>
+      </div>
+    </div>
+
+    <!-- 変更種別 -->
+    <div class="card">
+      <div class="card-title">変更の種類</div>
+      <div class="notice">
+        <strong>📞 必ず社員にひとこと声かけを！</strong><br>
+        このフォームは<strong>紙の代わり（記録用）</strong>です。申請だけでは完結しません。<br><br>
+        ・<strong>前日まで</strong>の連絡 → 19時までに電話でもご連絡ください<br>
+        　内線：<strong>548</strong> または <strong>538</strong><br>
+        ・<strong>当日</strong>の連絡 → 必ず電話で直接ご連絡ください
+      </div>
+      <div class="type-grid">
+        <div class="type-btn" data-type="absent" onclick="selectType(this)">
+          <span class="icon">🏠</span>
+          <span class="label">出勤→休み<br>（急遽欠勤）</span>
+          <div class="check"></div>
+        </div>
+        <div class="type-btn" data-type="work" onclick="selectType(this)">
+          <span class="icon">💼</span>
+          <span class="label">休み→出勤<br>（急遽出勤）</span>
+          <div class="check"></div>
+        </div>
+        <div class="type-btn" data-type="time" onclick="selectType(this)" style="grid-column:1/-1;">
+          <span class="icon">🕐</span>
+          <span class="label">時間変更</span>
+          <div class="check"></div>
+        </div>
+      </div>
+      <div class="error-msg" id="typeErr" style="display:none; margin-top:8px;">変更の種類を選択してください</div>
+    </div>
+
+    <!-- 時間変更（条件表示） -->
+    <div class="card conditional" id="timeSection">
+      <div class="card-title">時間の変更</div>
+      <div class="field">
+        <label>変更前の勤務時間（任意）</label>
+        <input type="text" class="time-free" id="oldTime" placeholder="例：9:00〜17:00、早番など">
+      </div>
+      <div class="field">
+        <label>変更後の勤務時間 <span class="req">*</span></label>
+        <input type="text" class="time-free" id="newTime" placeholder="例：10:00〜、〜15:00、9:00〜18:00">
+        <div class="time-hint">⚠️ 自由に入力できます。「〜12時」「9時〜」なども可</div>
+        <div class="error-msg" id="timeErr">変更後の時間を入力してください</div>
+      </div>
+    </div>
+
+    <!-- 休み→出勤の時間（条件表示） -->
+    <div class="card conditional" id="workTimeSection">
+      <div class="card-title">出勤時間</div>
+      <div class="field">
+        <label>出勤予定の時間（任意）</label>
+        <input type="text" class="time-free" id="workTime" placeholder="例：9:00〜17:00、〜15:00、午後から など">
+        <div class="time-hint">わかる範囲で入力してください</div>
+      </div>
+    </div>
+
+    <!-- 理由・備考 -->
+    <div class="card">
+      <div class="card-title">理由・備考</div>
+      <div class="field">
+        <label>理由（任意）</label>
+        <textarea id="reason" placeholder="例：体調不良、急な用事など"></textarea>
+      </div>
+    </div>
+
+    <!-- SUBMIT -->
+    <button class="submit-btn" onclick="handleSubmit()">申請を送信する →</button>
+
+    <!-- QR trigger -->
+    <button class="qr-trigger" onclick="showQR()">
+      📱 このアプリのQRコードを表示
+    </button>
+  </div>
+
+  <!-- SUCCESS -->
+  <div id="successView" class="success-screen">
+    <div class="success-icon">✅</div>
+    <div class="success-title">申請を送信しました</div>
+    <div class="success-msg">Slackチャンネルに変更内容を<br>通知しました。</div>
+    <div class="success-detail" id="successDetail"></div>
+    <button class="back-btn" onclick="resetForm()">← 新しい申請をする</button>
+  </div>
+</div>
+
+<!-- QR Modal -->
+<div class="qr-modal" id="qrModal">
+  <div class="qr-box">
+    <div class="qr-title">📱 シフト変更申請フォーム</div>
+    <div id="qrcode"></div>
+    <button class="qr-close" onclick="document.getElementById('qrModal').classList.remove('show')">閉じる</button>
+  </div>
+</div>
+
+<script>
+  // ===== STATE =====
+  let selectedType = null;
+
+  // ===== TYPE SELECT =====
+  function selectType(el) {
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedType = el.dataset.type;
+    document.getElementById('typeErr').style.display = 'none';
+
+    document.getElementById('timeSection').classList.toggle('show', selectedType === 'time');
+    document.getElementById('workTimeSection').classList.toggle('show', selectedType === 'work');
+  }
+
+  // ===== TYPE LABEL =====
+  function getTypeLabel(type) {
+    const map = {
+      absent: '🏠 出勤→休み（急遽欠勤）',
+      work: '💼 休み→出勤（急遽出勤）',
+      time: '🕐 時間変更'
+    };
+    return map[type] || type;
+  }
+
+  // ===== FORMAT DATE =====
+  function formatDate(val) {
+    if (!val) return '';
+    const [y, m, d] = val.split('-');
+    const days = ['日','月','火','水','木','金','土'];
+    const date = new Date(y, m - 1, d);
+    return `${y}年${m}月${d}日（${days[date.getDay()]}）`;
+  }
+
+  // ===== VALIDATE =====
+  function validate() {
+    let ok = true;
+    const name = document.getElementById('name').value.trim();
+    const date = document.getElementById('targetDate').value;
+
+    document.getElementById('nameErr').style.display = name ? 'none' : 'block';
+    document.getElementById('dateErr').style.display = date ? 'none' : 'block';
+    document.getElementById('typeErr').style.display = selectedType ? 'none' : 'block';
+
+    if (!name || !date || !selectedType) ok = false;
+
+    if (selectedType === 'time') {
+      const nt = document.getElementById('newTime').value.trim();
+      document.getElementById('timeErr').style.display = nt ? 'none' : 'block';
+      if (!nt) ok = false;
+    }
+    return ok;
+  }
+
+  // ===== BUILD MESSAGE =====
+  function buildMessage(data) {
+    const dateStr = formatDate(data.date);
+    let msg = `📋 *シフト変更申請*\n`;
+    msg += `──────────────────\n`;
+    msg += `👤 *名前：* ${data.name}\n`;
+    msg += `📅 *対象日：* ${dateStr}\n`;
+    msg += `🔄 *変更内容：* ${getTypeLabel(data.type)}\n`;
+
+    if (data.type === 'time') {
+      if (data.oldTime) msg += `⏰ *変更前：* ${data.oldTime}\n`;
+      msg += `⏰ *変更後：* ${data.newTime}\n`;
+    }
+    if (data.type === 'work' && data.workTime) {
+      msg += `⏰ *出勤予定時間：* ${data.workTime}\n`;
+    }
+
+    if (data.reason) {
+      msg += `💬 *理由：* ${data.reason}\n`;
+    }
+    msg += `──────────────────\n`;
+    msg += `_${new Date().toLocaleString('ja-JP')} 送信_`;
+    return msg;
+  }
+
+  // ===== Slack Incoming Webhook URL =====
+  // ↓ここにWebhook URLを貼り付けてください
+  const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
+
+  // ===== SUBMIT =====
+  async function handleSubmit() {
+    if (!validate()) return;
+
+    if (SLACK_WEBHOOK_URL === 'YOUR_WEBHOOK_URL_HERE') {
+      alert('⚠️ Slack Webhook URLが設定されていません。\nHTMLファイル内の SLACK_WEBHOOK_URL を設定してください。');
+      return;
+    }
+
+    const data = {
+      name: document.getElementById('name').value.trim(),
+      date: document.getElementById('targetDate').value,
+      type: selectedType,
+      reason: document.getElementById('reason').value.trim(),
+      oldTime: document.getElementById('oldTime').value.trim(),
+      newTime: document.getElementById('newTime').value.trim(),
+      workTime: document.getElementById('workTime').value.trim(),
+    };
+
+    document.getElementById('loadingOverlay').classList.add('show');
+
+    try {
+      const message = buildMessage(data);
+
+      // Slack Incoming Webhook に直接POST（no-corsで送信）
+      await fetch(SLACK_WEBHOOK_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: message })
+      });
+
+      // no-corsではレスポンス本文を読めないが、エラーなく完了すれば成功とみなす
+      document.getElementById('loadingOverlay').classList.remove('show');
+      showSuccess(data);
+
+    } catch (e) {
+      document.getElementById('loadingOverlay').classList.remove('show');
+      alert('送信に失敗しました。ネットワーク接続をご確認ください。\n' + e.message);
+    }
+  }
+
+  // ===== SHOW SUCCESS =====
+  function showSuccess(data) {
+    let detail = `<strong>名前：</strong>${data.name}<br>`;
+    detail += `<strong>対象日：</strong>${formatDate(data.date)}<br>`;
+    detail += `<strong>変更内容：</strong>${getTypeLabel(data.type)}<br>`;
+    if (data.type === 'time') {
+      if (data.oldTime) detail += `<strong>変更前：</strong>${data.oldTime}<br>`;
+      detail += `<strong>変更後：</strong>${data.newTime}<br>`;
+    }
+    if (data.type === 'work' && data.workTime) {
+      detail += `<strong>出勤予定時間：</strong>${data.workTime}<br>`;
+    }
+    if (data.reason) detail += `<strong>理由：</strong>${data.reason}<br>`;
+    detail += `<strong>送信先：</strong>#890-パートアルバイトシフト変更依頼`;
+    document.getElementById('successDetail').innerHTML = detail;
+
+    document.getElementById('formView').style.display = 'none';
+    document.getElementById('successView').classList.add('show');
+  }
+
+  // ===== RESET =====
+  function resetForm() {
+    document.getElementById('name').value = '';
+    document.getElementById('targetDate').value = '';
+    document.getElementById('reason').value = '';
+    document.getElementById('oldTime').value = '';
+    document.getElementById('newTime').value = '';
+    document.getElementById('workTime').value = '';
+    selectedType = null;
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('timeSection').classList.remove('show');
+    document.getElementById('workTimeSection').classList.remove('show');
+    document.getElementById('formView').style.display = 'block';
+    document.getElementById('successView').classList.remove('show');
+  }
+
+  // ===== QR CODE =====
+  function showQR() {
+    const url = window.location.href;
+    const qrDiv = document.getElementById('qrcode');
+    qrDiv.innerHTML = '';
+    new QRCode(qrDiv, {
+      text: url,
+      width: 200,
+      height: 200,
+      colorDark: '#C0392B',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.H
+    });
+    document.getElementById('qrModal').classList.add('show');
+  }
+
+  // Set default date to today
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  document.getElementById('targetDate').value = `${yyyy}-${mm}-${dd}`;
+</script>
+</body>
+</html>
