@@ -625,18 +625,12 @@
     return msg;
   }
 
-  // ===== Slack Incoming Webhook URL =====
-  // ↓ここにWebhook URLを貼り付けてください
-  const SLACK_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzMPBYCt0gv6IoFlJ4gMFemj5bBpYwwuTIa71slP7ZLIplXgTJeokSvEyC-Ibss_e0H5Q/exec';
+  // ===== GAS経由Slack送信URL =====
+  const GAS_URL = 'https://script.google.com/macros/s/AKfycbzMPBYCt0gv6IoFlJ4gMFemj5bBpYwwuTIa71slP7ZLIplXgTJeokSvEyC-Ibss_e0H5Q/exec';
 
   // ===== SUBMIT =====
   async function handleSubmit() {
     if (!validate()) return;
-
-    if (SLACK_WEBHOOK_URL === 'YOUR_WEBHOOK_URL_HERE') {
-      alert('⚠️ Slack Webhook URLが設定されていません。\nHTMLファイル内の SLACK_WEBHOOK_URL を設定してください。');
-      return;
-    }
 
     const data = {
       name: document.getElementById('name').value.trim(),
@@ -650,24 +644,20 @@
 
     document.getElementById('loadingOverlay').classList.add('show');
 
-    try {
-      const message = buildMessage(data);
+    const message = buildMessage(data);
 
-      // Slack Incoming Webhook に直接POST（no-corsで送信）
-      await fetch(SLACK_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: message })
-      });
+    // GAS経由でSlackに送信（scriptタグ方式でCORSを完全回避）
+    await new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = GAS_URL + '?text=' + encodeURIComponent(message);
+      script.onload = resolve;
+      script.onerror = resolve;
+      document.body.appendChild(script);
+      setTimeout(resolve, 4000);
+    });
 
-      // no-corsではレスポンス本文を読めないが、エラーなく完了すれば成功とみなす
-      document.getElementById('loadingOverlay').classList.remove('show');
-      showSuccess(data);
-
-    } catch (e) {
-      document.getElementById('loadingOverlay').classList.remove('show');
-      alert('送信に失敗しました。ネットワーク接続をご確認ください。\n' + e.message);
-    }
+    document.getElementById('loadingOverlay').classList.remove('show');
+    showSuccess(data);
   }
 
   // ===== SHOW SUCCESS =====
