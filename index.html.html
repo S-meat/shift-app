@@ -627,7 +627,7 @@
 
   // ===== Slack Incoming Webhook URL =====
   // ↓ここにWebhook URLを貼り付けてください
-  const SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/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';
+  const SLACK_WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzMPBYCt0gv6IoFlJ4gMFemj5bBpYwwuTIa71slP7ZLIplXgTJeokSvEyC-Ibss_e0H5Q/exec';
 
   // ===== SUBMIT =====
   async function handleSubmit() {
@@ -656,7 +656,6 @@
       // Slack Incoming Webhook に直接POST（no-corsで送信）
       await fetch(SLACK_WEBHOOK_URL, {
         method: 'POST',
-        mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: message })
       });
