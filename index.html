@@ -462,7 +462,8 @@
         このフォームは<strong>紙の代わり（記録用）</strong>です。申請だけでは完結しません。<br><br>
         ・<strong>前日まで</strong>の連絡 → 19時までに電話でもご連絡ください<br>
         　内線：<strong>548</strong> または <strong>538</strong><br>
-        ・<strong>当日</strong>の連絡 → 必ず電話で直接ご連絡ください
+        ・<strong>当日</strong>の連絡 → 必ず<strong>電話＋このアプリの両方</strong>で連絡してください<br>
+        　（有給を使用するか確認するため）
       </div>
       <div class="type-grid">
         <div class="type-btn" data-type="absent" onclick="selectType(this)">
@@ -496,6 +497,24 @@
         <input type="text" class="time-free" id="newTime" placeholder="例：10:00〜、〜15:00、9:00〜18:00">
         <div class="time-hint">⚠️ 自由に入力できます。「〜12時」「9時〜」なども可</div>
         <div class="error-msg" id="timeErr">変更後の時間を入力してください</div>
+      </div>
+    </div>
+
+    <!-- 有給使用の有無（出勤→休みのみ） -->
+    <div class="card conditional" id="paidSection">
+      <div class="card-title">有給休暇の使用</div>
+      <div class="notice">
+        <strong>📞 当日の欠勤は「電話」と「アプリ」の両方が必須です</strong><br>
+        有給を使用するか確認するため、必ず電話（内線：<strong>548</strong> または <strong>538</strong>）でも連絡してください。
+      </div>
+      <div class="field">
+        <label>有給を使用しますか？ <span class="req">*</span></label>
+        <select id="paidLeave">
+          <option value="">選択してください</option>
+          <option value="yes">使用する</option>
+          <option value="no">使用しない</option>
+        </select>
+        <div class="error-msg" id="paidErr">有給の使用有無を選択してください</div>
       </div>
     </div>
 
@@ -578,7 +597,10 @@
 
     document.getElementById('timeSection').classList.toggle('show', selectedType === 'time');
     document.getElementById('workTimeSection').classList.toggle('show', selectedType === 'work');
+    document.getElementById('paidSection').classList.toggle('show', selectedType === 'absent');
   }
+
+  function paidLabel(v) { return v === 'yes' ? '使用する' : '使用しない'; }
 
   // ===== TYPE LABEL =====
   function getTypeLabel(type) {
@@ -619,6 +641,11 @@
       document.getElementById('timeErr').style.display = nt ? 'none' : 'block';
       if (!nt) ok = false;
     }
+    if (selectedType === 'absent') {
+      const pl = document.getElementById('paidLeave').value;
+      document.getElementById('paidErr').style.display = pl ? 'none' : 'block';
+      if (!pl) ok = false;
+    }
     return ok;
   }
 
@@ -639,11 +666,17 @@
     if (data.type === 'work' && data.workTime) {
       msg += `⏰ *出勤予定時間：* ${data.workTime}\n`;
     }
+    if (data.type === 'absent') {
+      msg += `🌴 *有給使用：* ${paidLabel(data.paidLeave)}\n`;
+    }
 
     if (data.reason) {
       msg += `💬 *理由：* ${data.reason}\n`;
     }
     msg += `──────────────────\n`;
+    if (data.type === 'absent' && data.paidLeave === 'yes') {
+      msg += `<@U03CFLLLBUM> <@U0ANLKY2HCY> <@U052F5BJ2G0> 宛に有給申請がありました。有給使用Excelに記入してください。\n`;
+    }
     msg += `_${new Date().toLocaleString('ja-JP')} 送信_`;
     return msg;
   }
@@ -668,6 +701,7 @@
       oldTime: document.getElementById('oldTime').value.trim(),
       newTime: document.getElementById('newTime').value.trim(),
       workTime: document.getElementById('workTime').value.trim(),
+      paidLeave: selectedType === 'absent' ? document.getElementById('paidLeave').value : '',
     };
 
     document.getElementById('loadingOverlay').classList.add('show');
@@ -701,6 +735,7 @@
     if (data.type === 'work' && data.workTime) {
       detail += `<strong>出勤予定時間：</strong>${data.workTime}<br>`;
     }
+    if (data.type === 'absent') detail += `<strong>有給使用：</strong>${paidLabel(data.paidLeave)}<br>`;
     if (data.reason) detail += `<strong>理由：</strong>${data.reason}<br>`;
     detail += `<strong>送信先：</strong>#890-パートアルバイトシフト変更依頼`;
     document.getElementById('successDetail').innerHTML = detail;
@@ -718,6 +753,8 @@
     document.getElementById('oldTime').value = '';
     document.getElementById('newTime').value = '';
     document.getElementById('workTime').value = '';
+    document.getElementById('paidLeave').value = '';
+    document.getElementById('paidSection').classList.remove('show');
     selectedType = null;
     document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
     document.getElementById('timeSection').classList.remove('show');
