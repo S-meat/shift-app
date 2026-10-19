@@ -509,6 +509,25 @@
       </div>
     </div>
 
+    <!-- 社員確認 -->
+    <div class="card">
+      <div class="card-title">社員の確認</div>
+      <div class="field">
+        <label>確認してもらった社員 <span class="req">*</span></label>
+        <select id="staff">
+          <option value="">選択してください</option>
+          <option value="塚越">塚越</option>
+          <option value="池上">池上</option>
+          <option value="坂田">坂田</option>
+          <option value="伊藤">伊藤</option>
+          <option value="吉田">吉田</option>
+          <option value="清水">清水</option>
+        </select>
+        <div class="time-hint">⚠️ 社員に相談・確認が取れていない場合は申請できません</div>
+        <div class="error-msg" id="staffErr">社員の確認を選択してください（確認が取れていない場合は先に社員へ相談を）</div>
+      </div>
+    </div>
+
     <!-- 理由・備考 -->
     <div class="card">
       <div class="card-title">理由・備考</div>
@@ -590,7 +609,10 @@
     document.getElementById('dateErr').style.display = date ? 'none' : 'block';
     document.getElementById('typeErr').style.display = selectedType ? 'none' : 'block';
 
-    if (!name || !date || !selectedType) ok = false;
+    const staff = document.getElementById('staff').value;
+    document.getElementById('staffErr').style.display = staff ? 'none' : 'block';
+
+    if (!name || !date || !selectedType || !staff) ok = false;
 
     if (selectedType === 'time') {
       const nt = document.getElementById('newTime').value.trim();
@@ -608,6 +630,7 @@
     msg += `👤 *名前：* ${data.name}\n`;
     msg += `📅 *対象日：* ${dateStr}\n`;
     msg += `🔄 *変更内容：* ${getTypeLabel(data.type)}\n`;
+    msg += `✅ *社員確認：* ${data.staff} 確認済み\n`;
 
     if (data.type === 'time') {
       if (data.oldTime) msg += `⏰ *変更前：* ${data.oldTime}\n`;
@@ -630,12 +653,17 @@
 
   // ===== SUBMIT =====
   async function handleSubmit() {
-    if (!validate()) return;
+    if (!validate()) {
+      const firstErr = [...document.querySelectorAll('.error-msg')].find(e => e.style.display === 'block');
+      if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
 
     const data = {
       name: document.getElementById('name').value.trim(),
       date: document.getElementById('targetDate').value,
       type: selectedType,
+      staff: document.getElementById('staff').value,
       reason: document.getElementById('reason').value.trim(),
       oldTime: document.getElementById('oldTime').value.trim(),
       newTime: document.getElementById('newTime').value.trim(),
@@ -665,6 +693,7 @@
     let detail = `<strong>名前：</strong>${data.name}<br>`;
     detail += `<strong>対象日：</strong>${formatDate(data.date)}<br>`;
     detail += `<strong>変更内容：</strong>${getTypeLabel(data.type)}<br>`;
+    detail += `<strong>社員確認：</strong>${data.staff} 確認済み<br>`;
     if (data.type === 'time') {
       if (data.oldTime) detail += `<strong>変更前：</strong>${data.oldTime}<br>`;
       detail += `<strong>変更後：</strong>${data.newTime}<br>`;
@@ -685,6 +714,7 @@
     document.getElementById('name').value = '';
     document.getElementById('targetDate').value = '';
     document.getElementById('reason').value = '';
+    document.getElementById('staff').value = '';
     document.getElementById('oldTime').value = '';
     document.getElementById('newTime').value = '';
     document.getElementById('workTime').value = '';
